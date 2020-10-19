@@ -21,7 +21,10 @@ def respond():
         #etc
 
     # Return the response in json format
-    return jsonify(response)
+
+    response = jsonify(response)
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
 
 @app.route('/post/', methods=['POST'])
 def post_something():
