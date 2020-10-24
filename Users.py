@@ -22,9 +22,7 @@ class UsersHandler:
 	loggedUser = None
 
 	def addUser(newUser):
-
 		print(newUser)
-
 		for user in UsersHandler.users:
 			if (user.username == newUser.username):
 				return False
