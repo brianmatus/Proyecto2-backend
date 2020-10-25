@@ -5,16 +5,15 @@ class User:
 		self.lastname = lastname
 		self.username = username
 		self.password = password
-
-
+		self.type = "cliente"
 
 	def getUserAsList(self):
-		list = {}
-		list["name"] = self.name
-		list["lastname"] = self.lastname
-		list["username"] = self.username
-		list["password"] = self.password
-		return list
+		return {
+			"name": self.name,
+			"lastname" : self.lastname,
+			"username": self.username,
+			"password": self.password
+		}
 
 class UsersHandler:
 
@@ -22,7 +21,6 @@ class UsersHandler:
 	loggedUser = None
 
 	def addUser(newUser):
-		print(newUser)
 		for user in UsersHandler.users:
 			if (user.username == newUser.username):
 				return False

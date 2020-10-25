@@ -19,45 +19,62 @@ CORS(app)
 
 @app.route('/search_recipes/', methods=['GET'])
 #0:sucess
-#1: Missing title
-#2: No recipe found
+#-1: Missing title
+#1: No recipe found
 def search_recipes():
     data = json.loads(request.data)
-    title = data['title']
-    exactMatch = ['exactMatch']
+    title = data.get('title', "*")
+    exactMatch = data.get('exactMatch', "false")
 
     response = {}
 
-    if not title:
-        response["RESULT"] = "No ha ingreso un titulo de receta a buscar"
+    if (not title or title == ""):
+        return jsonify({
+            "RESULT": "No ha brindado toda la informacion necesaria",
+            "RETURNCODE" : "-1",
+            "METHOD" : "POST"
+        })
+
+
+    foundRecipes = RecipesHandler.searchRecipes(title, exactMatch)
+
+    if len(foundRecipes) == 0:
+        response["RESULT"] = "No se encontraror recetas con ese nombre"
         response["RETURNCODE"] = 1
     else:
-        foundRecipes = RecipesHandler.searchRecipes(title, exactMatch)
 
-        if len(foundRecipes) == 0:
-            response["RESULT"] = "No se encontraror recetas con ese nombre"
-            response["RETURNCODE"] = 2
-        else:
-
-            asList = RecipesHandler.getRecipesAsList(foundRecipes)
-            print(jsonify(asList))
-            response["RESULT"] = asList
-            response["RETURNCODE"] = 0
+        asList = RecipesHandler.getRecipesAsList(foundRecipes)
+        print(jsonify(asList))
+        response["RESULT"] = asList
+        response["RETURNCODE"] = 0
 
     response = jsonify(response)
     #response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 
 @app.route('/add_recipe/',methods=['POST'])
+#0: sucess
+#-1: Missing data
+#1: title already exist
 def add_recipe():
     data = json.loads(request.data)
-    author = data['author']
-    title = data['title']
-    abstract = data['abstract']
-    ingredients = data['ingredients']
-    steps = data['steps']
-    time = data['time']
-    image = data['image']
+    author = data.get('author', None)
+    title = data.get('title', None)
+    abstract = data.get('abstract', None)
+    ingredients = data.get('ingredients', None)
+    steps = data.get('steps', None)
+    time = data.get('time', None)
+    image = data.get('image', None)
+
+
+    list = [author,title,abstract,ingredients,steps,time,image]
+    for element in list:
+        if (not element or element == ""):
+            return jsonify({
+            "RESULT": "No ha brindado toda la informacion necesaria",
+            "RETURNCODE" : "-1",
+            "METHOD" : "POST"
+            })
 
     result = RecipesHandler.addRecipe(Recipe(author,title,abstract,ingredients,steps,time,image,[], []))
 
@@ -77,7 +94,14 @@ def add_recipe():
 @app.route('/remove_recipe/',methods=['POST'])
 def remove_recipe():
     data = json.loads(request.data)
-    title = data['title']
+    title = data.get('title', None)
+
+    if (not title or title == ""):
+        return jsonify({
+            "RESULT": "No ha brindado toda la informacion necesaria",
+            "RETURNCODE" : "-1",
+            "METHOD" : "POST"
+        })
 
 
     result = RecipesHandler.removeRecipeByTitle(title)
@@ -98,21 +122,32 @@ def remove_recipe():
 
 @app.route('/modify_recipe/', methods=['POST'])
 #0: sucess
-#1: Missing data
+#-1: Missing data
 #2: Recipe with new title already exists
 #3: Recipe doesn't exist
 def modify_recipe():
     data = json.loads(request.data)
-    pastTitle = data['pastTitle']
-    author = data['author']
-    title = data['title']
-    abstract = data['abstract']
-    ingredients = data['ingredients']
-    steps = data['steps']
-    time = data['time']
-    image = data['image']
-    commentaries = data['image']
-    reactions = data['reactions']
+    pastTitle = data.get('pastTitle', None)
+    author = data.get('author', None)
+    title = data.get('title', None)
+    abstract = data.get('abstract', None)
+    ingredients = data.get('ingredients', None)
+    steps = data.get('steps', None)
+    time = data.get('time', None)
+    image = data.get('image', None)
+    commentaries = data.get('image', None)
+    reactions = data.get('reactions', None)
+
+
+
+    list = [pastTitle,author,title,abstract,ingredients,steps,time,image,commentaries, reactions]
+    for element in list:
+        if (not element or element == ""):
+            return jsonify({
+                "RESULT": "No ha brindado toda la informacion necesaria",
+                "RETURNCODE" : "-1",
+                "METHOD" : "POST"
+            })
 
     newRecipe = Recipe(author,title,abstract,ingredients,steps,time,image,commentaries, reactions)
 
@@ -144,56 +179,45 @@ def modify_recipe():
 
 @app.route('/login/', methods=['POST'])
 #0: sucess
+#-1: Missing data
 #1: Usuario no encontrado
 #2: Contrasena invalida
-#3: No se proporciono clave
-#4: No se proporciono usuario
 def login():
     data = json.loads(request.data)
-    username = data['username']
-    password = data['password']
-    print(username)
-    print(password)
+    username = data.get('username', None)
+    password = data.get('password', None)
     response = {}
 
-    if username:
-        if password:
-            result = UsersHandler.login(username,password)
-            if result == 0:
-                response =  jsonify({
-                    "RESULT": f"Iniciado sesion correctamente con {username}, bienvenido",
-                    "RETURNCODE" : "0",
-                    "METHOD" : "POST"
-                })
-            elif result == 1:
-                response = jsonify({
-                    "RESULT": f"No se ha encontrado ningun usuario con username {username}",
-                    "RETURNCODE" : "1",
-                    "METHOD" : "POST"
-                })
-            elif result == 2:
-                response = jsonify({
-                    "RESULT": f"La contrasena ingresada para {username} no coincide con la registrada en el sistema",
-                    "RETURNCODE" : "2",
-                    "METHOD" : "POST"
-                })
-        else:
-             response = jsonify({
-                    "RESULT": "No se brindo contrasena",
-                    "RETURNCODE" : "3",
-                    "METHOD" : "POST"
-            })
-    else:
-        response = jsonify({
-            "RESULT": "No se brindo usuario",
-            "RETURNCODE" : "4",
+    if (not username or username == "" or not password or password == "") :
+        return jsonify({
+            "RESULT": "No ha brindado toda la informacion necesaria",
+            "RETURNCODE" : "-1",
             "METHOD" : "POST"
-         })
+        })
 
-    
+
+    result = UsersHandler.login(username,password)
+    if result == 0:
+        response =  jsonify({
+            "RESULT": f"Iniciado sesion correctamente con {username}, bienvenido",
+            "RETURNCODE" : "0",
+            "METHOD" : "POST"
+        })
+    elif result == 1:
+        response = jsonify({
+            "RESULT": f"No se ha encontrado ningun usuario con username {username}",
+            "RETURNCODE" : "1",
+            "METHOD" : "POST"
+        })
+    elif result == 2:
+        response = jsonify({
+            "RESULT": f"La contrasena ingresada para {username} no coincide con la registrada en el sistema",
+            "RETURNCODE" : "2",
+            "METHOD" : "POST"
+        })
+            
     #response.headers.add('Access-Control-Allow-Origin', '*')
     return response
-
 
 
 @app.route('/logout/',methods=['POST'])
@@ -209,13 +233,24 @@ def logout():
 
 @app.route('/register_user/', methods=['POST'])
 #0: sucess
+#-1: Missing data
 #1: User already exist
 def register_user():
     data = json.loads(request.data)
-    name = data['name']
-    lastname = data['lastname']
-    username = data['username']
-    password = data['password']
+    name = data.get('name', None)
+    lastname = data.get('lastname', None)
+    username = data.get('username', None)
+    password = data.get('password', None)
+
+    list = [name,lastname,username,password]
+    for element in list:
+        if (not element or element == ""):
+            return jsonify({
+                "RESULT": "No ha brindado toda la informacion necesaria",
+                "RETURNCODE" : "-1",
+                "METHOD" : "POST"
+            })
+
     newUser = User(name,lastname,username,password)
 
     result = UsersHandler.addUser(newUser)
@@ -236,16 +271,27 @@ def register_user():
 
 @app.route('/remove_user/',methods=['POST'])\
 #0: sucess
+#-1: Missing data
 #1: user is master user
 #2: no user found
 def remove_user():
     data = json.loads(request.data)
-    username = data['username']
+    username = data.get('username', None)
+
+
+
+    if (not username or username == ""):
+        return jsonify({
+            "RESULT": "No ha brindado toda la informacion necesaria",
+            "RETURNCODE" : "-1",
+            "METHOD" : "POST"
+        })
+
 
 
     if (username == "admin"):
         return jsonify({
-            "RESULT": f"No se puede borrar al usuario maestro",
+            "RESULT": "No se puede borrar al usuario maestro",
             "RETURNCODE" : "1",
             "METHOD" : "POST"
         })
@@ -271,30 +317,30 @@ def remove_user():
 
 @app.route('/modify_user/', methods=['POST'])
 #0: sucess
-#1: Missing data
+#-1: Missing data
 #2: User with new username already exists
 #3: user doesnt exist
 def modify_user():
     data = json.loads(request.data)
-    pastUsername = data['pastUsername']
-    name = data['name']
-    lastname = data['lastname']
-    username = data['username']
-    password = data['password']
+    pastUsername = data.get('pastUsername', None)
+    name = data.get('name', None)
+    lastname = data.get('lastname', None)
+    username = data.get('username', None)
+    password = data.get('password', None)
 
-    if (pastUsername == None or name == None or lastname == None or username == None or password == None ):
-
-        return jsonify({
-            "RESULT": "No se brindo toda la informacion necesaria",
-            "RETURNCODE" : "1",
-            "METHOD" : "POST"
-        })
+    list = [pastUsername,name,lastname,username,password]
+    for element in list:
+        if (not element or element == ""):
+            return jsonify({
+                "RESULT": "No ha brindado toda la informacion necesaria",
+                "RETURNCODE" : "-1",
+                "METHOD" : "POST"
+            })
 
 
     newUser = User(name,lastname,username,password)
 
     result = UsersHandler.modifyUser(pastUsername, newUser)
-
     if result == 0:
         return jsonify({
             "RESULT": f"Usuario {pastUsername} modificado con exito",
@@ -329,7 +375,7 @@ def search_users():
     if (username == None):
         return jsonify({
                 "RESULT": f"No se brindo un username para buscar",
-                "RETURNCODE" : "1",
+                "RETURNCODE" : "-1",
                 "METHOD" : "POST"
             })
 
@@ -381,7 +427,14 @@ def get_logged_user():
 def recover_password():
 
     data = json.loads(request.data)
-    username = data['username']
+    username = data.get('username', None)
+
+    if (not username or username == ""):
+        return jsonify({
+            "RESULT": "No ha brindado toda la informacion necesaria",
+            "RETURNCODE" : "-1",
+            "METHOD" : "POST"
+        })
 
     user = UsersHandler.getUserByUsername(username)
 
