@@ -8,6 +8,8 @@ from Recipes import RecipesHandler as RecipesHandler
 from Users import User as User
 from Users import UsersHandler as UsersHandler
 
+from datetime import datetime
+
 import json
 
 app = Flask(__name__)
@@ -17,7 +19,7 @@ CORS(app)
                                 #########################################
 
 
-@app.route('/search_recipes/', methods=['GET'])
+@app.route('/search_recipes/', methods=['GET','POST'])
 #0:sucess
 #-1: Missing title
 #1: No recipe found
@@ -27,7 +29,6 @@ def search_recipes():
     exactMatch = data.get('exactMatch', "false")
 
     response = {}
-
     if (not title or title == ""):
         return jsonify({
             "RESULT": "No ha brindado toda la informacion necesaria",
@@ -35,9 +36,7 @@ def search_recipes():
             "METHOD" : "POST"
         })
 
-
     foundRecipes = RecipesHandler.searchRecipes(title, exactMatch)
-
     if len(foundRecipes) == 0:
         response["RESULT"] = "No se encontraror recetas con ese nombre"
         response["RETURNCODE"] = 1
@@ -49,7 +48,6 @@ def search_recipes():
         response["RETURNCODE"] = 0
 
     response = jsonify(response)
-    #response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 
 @app.route('/add_recipe/',methods=['POST'])
@@ -95,8 +93,9 @@ def add_recipe():
 def remove_recipe():
     data = json.loads(request.data)
     title = data.get('title', None)
+    author = data.get('author', None)
 
-    if (not title or title == ""):
+    if (not title or title == "" or not author or author == ""):
         return jsonify({
             "RESULT": "No ha brindado toda la informacion necesaria",
             "RETURNCODE" : "-1",
@@ -104,7 +103,7 @@ def remove_recipe():
         })
 
 
-    result = RecipesHandler.removeRecipeByTitle(title)
+    result = RecipesHandler.removeRecipeByTitleAndAuthor(title, author)
 
     if result:
         return jsonify({
@@ -114,7 +113,7 @@ def remove_recipe():
         })
     else:
         return jsonify({
-            "RESULT": f"No hay receta con titulo {title}",
+            "RESULT": f"No hay receta con titulo {title} y author {author}",
             "RETURNCODE" : "1",
             "METHOD" : "POST"
         })
@@ -127,6 +126,7 @@ def remove_recipe():
 #3: Recipe doesn't exist
 def modify_recipe():
     data = json.loads(request.data)
+    pastAuthor = data.get('pastAuthor', None)
     pastTitle = data.get('pastTitle', None)
     author = data.get('author', None)
     title = data.get('title', None)
@@ -140,7 +140,7 @@ def modify_recipe():
 
 
 
-    list = [pastTitle,author,title,abstract,ingredients,steps,time,image,commentaries, reactions]
+    list = [pastAuthor, pastTitle, author, title, abstract, ingredients, steps, time, image, commentaries, reactions]
     for element in list:
         if (not element or element == ""):
             return jsonify({
@@ -151,7 +151,7 @@ def modify_recipe():
 
     newRecipe = Recipe(author,title,abstract,ingredients,steps,time,image,commentaries, reactions)
 
-    result = RecipesHandler.modifyRecipe(pastTitle, newRecipe)
+    result = RecipesHandler.modifyRecipe(pastAuthor, pastTitle, newRecipe)
 
     if result == 0:
         return jsonify({
@@ -161,24 +161,70 @@ def modify_recipe():
                 })
     elif result == 2:
         return jsonify({
-            "RESULT": f"Una receta ya existe con el nuevo titulo {title}",
+            "RESULT": f"Una receta ya existe con el nuevo titulo {title} y autor {author}",
             "RETURNCODE" : "2",
             "METHOD" : "POST"
                 })
     elif result == 3:
 
         return jsonify({
-            "RESULT": f"No existe una receta con titulo {pastTitle}",
+            "RESULT": f"No existe una receta con titulo {pastTitle} y autor {pastAuthor}",
             "RETURNCODE" : "3",
             "METHOD" : "POST"
         })
 
-                                #########################################
-                                ##################USERS##################
-                                #########################################
+
+
+
+
+@app.route("/addComment/", methods=['POST'])
+#0: Sucess
+#-1: Missing data
+#1: Author-Recipe not found
+def addComment():
+
+    data = json.loads(request.data)
+
+    author = data.get('author', None)
+    body = data.get('body', None)
+
+    recipeAuthor = data.get('recipeAuthor', None)
+    recipeTitle = data.get('recipeTitle', None)
+
+
+    list = [author,body,recipeAuthor,recipeTitle]
+    for element in list:
+        if (not element or element == ""):
+            return jsonify({
+                "RESULT": "No ha brindado toda la informacion necesaria",
+                "RETURNCODE" : "-1",
+                "METHOD" : "POST"
+            })
+
+    recipe = RecipesHandler.getRecipeByAuthorAndTitle(recipeAuthor, recipeTitle)
+    if (recipe == None):
+        return jsonify({
+                "RESULT": "No existe esa combinacion autor-receta",
+                "RETURNCODE" : "1",
+                "METHOD" : "POST"
+            })
+
+    date = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+
+    recipe.addComment(author, body, date)
+
+    return jsonify({
+            "RESULT": "Comentario realizado correctamente",
+            "RETURNCODE" : "0",
+            "METHOD" : "POST"
+        })
+
+###########################################################################################################################
+###############################################USERS#######################################################################
+###########################################################################################################################
 
 @app.route('/login/', methods=['POST'])
-#0: sucess
+#0: Sucess
 #-1: Missing data
 #1: Usuario no encontrado
 #2: Contrasena invalida

@@ -1,5 +1,5 @@
 class Recipe:
-    def __init__ (self, author, titulo, abstract, ingredients, procedure, time, imagen, comments, reactions):
+    def __init__(self, author, titulo, abstract, ingredients, procedure, time, imagen, comments, reactions):
         self.author = author
         self.title = titulo
         self.abstract = abstract
@@ -23,62 +23,70 @@ class Recipe:
             "reactions": self.reactions
         }
 
-class RecipesHandler:
+    def addComment(self, author, body, date):
+        self.comments.append( {
+            "author": author,
+            "body": body,
+            "date": date
+        })
 
+
+class RecipesHandler:
     recipes = []
 
-    r1 = Recipe("Autor1","Titulo1","Res1","1ingr1,1ingr2","proced1","time1","imagen1","json-coment1","json-reac1")
-    r2 = Recipe("Autor2","Titulo2","Res2","2ingr1,2ingr2","proced2","time2","imagen2","json-coment2","json-reac2")
-    r3 = Recipe("Autor3","Titulo3","Res3","3ingr1,3ingr2","proced3","time3","imagen3","json-coment3","json-reac3")
+    r1 = Recipe("Autor1", "Titulo1", "Res1", "1ingr1,1ingr2", "proced1", "time1",
+                "https://i.ytimg.com/vi/fVh-h6K-zfY/maxresdefault.jpg",
+                [{"author": "Pitito", "body": "This is a nais receta mai frend", "date": "01/04/2020 15:40:09"}],
+                {})
+    r2 = Recipe("Autor2", "Titulo2", "Res2", "2ingr1,2ingr2", "proced2", "time2",
+                "https://i.ytimg.com/vi/fVh-h6K-zfY/maxresdefault.jpg", {
+                    "0": {"author": "Pitito5", "body": "This is a nais receta mai frend nais dik",
+                          "date": "01/05/2020 15:40:09"}}, {})
+    r3 = Recipe("Autor3", "Titulo3", "Res3", "3ingr1,3ingr2", "proced3", "time3",
+                "https://i.ytimg.com/vi/fVh-h6K-zfY/maxresdefault.jpg",
+                [{"author": "Pitito", "body": "This is beri bad, chish", "date": "05/04/2020 15:40:09"}], {})
 
     recipes.append(r1)
     recipes.append(r2)
     recipes.append(r3)
-    
 
     def addRecipe(theRecipe):
 
-        if (not RecipesHandler.getRecipeByTitle(theRecipe.title)):
+        if (not RecipesHandler.getRecipeByAuthorAndTitle(theRecipe.title, theRecipe.author)):
 
             RecipesHandler.recipes.append(theRecipe)
             return True
         else:
             return False
 
-    def removeRecipeByTitle(title):
+    def removeRecipeByTitleAndAuthor(title, author):
         for recipe in RecipesHandler.recipes:
-            if (recipe.title == title):
+            if (recipe.title == title and recipe.author == author):
                 RecipesHandler.recipes.remove(recipe)
                 return True
         return False
 
+    # 0: sucess
+    # 2: new title already exist
+    # 3: recipe doesn't exist
+    def modifyRecipe(pastAuthor, pastTitle, newRecipe):
 
-    #0: sucess
-	#2: new title already exist
-	#3: recipe doesn't exist
-    def modifyRecipe(pastTitle, newRecipe):
-
-
-        theRecipe = RecipesHandler.getRecipeByTitle(newRecipe.title)
-        if (theRecipe != None and newRecipe.title != pastTitle):
+        theRecipe = RecipesHandler.getRecipeByAuthorAndTitle(newRecipe.title, newRecipe.author)
+        if (theRecipe != None and newRecipe.title != pastTitle and newRecipe.author != pastAuthor):
             return 2
 
         for _recipe in RecipesHandler.recipes:
-            if(_recipe.title == pastTitle):
+            if (_recipe.title == pastTitle and _recipe.author == pastAuthor):
                 RecipesHandler.recipes.remove(_recipe)
                 RecipesHandler.recipes.append(newRecipe)
                 return 0
         return 3
 
-
-
     def searchRecipes(key, exactMatch):
-        foundRecipes = [] 
-
+        foundRecipes = []
 
         if (key == "*"):
             return RecipesHandler.recipes
-
 
         for recipe in RecipesHandler.recipes:
             if (exactMatch == "true"):
@@ -89,10 +97,11 @@ class RecipesHandler:
                     foundRecipes.append(recipe)
         return foundRecipes
 
-
-    def getRecipeByTitle(title):
+    def getRecipeByAuthorAndTitle(author, title):
+        print("OBTENIENDO CON AUTOR:" + author)
+        print("OBTENIENDO CON TITULO:" + title)
         for recipe in RecipesHandler.recipes:
-            if (recipe.title == title):
+            if (recipe.title == title and recipe.author == author):
                 return recipe
 
     def getRecipesAsList(recipes):
@@ -102,4 +111,3 @@ class RecipesHandler:
             list[i] = recipe.getRecipeAsList()
             i = i + 1
         return list
-            
