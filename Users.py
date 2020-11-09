@@ -1,18 +1,22 @@
 class User:
 
-	def __init__ (self, name, lastname, username, password):
+	def __init__ (self, name, lastname, username, password, type):
 		self.name = name
 		self.lastname = lastname
 		self.username = username
 		self.password = password
-		self.type = "cliente"
+		if (type == None):
+			self.type = "cliente"
+		else:
+			self.type = type
 
 	def getUserAsList(self):
 		return {
 			"name": self.name,
 			"lastname" : self.lastname,
 			"username": self.username,
-			"password": self.password
+			"password": self.password,
+			"type":self.type
 		}
 
 class UsersHandler:
@@ -20,6 +24,7 @@ class UsersHandler:
 	users = []
 	loggedUser = None
 
+	@staticmethod
 	def addUser(newUser):
 		for user in UsersHandler.users:
 			if (user.username == newUser.username):
@@ -27,6 +32,7 @@ class UsersHandler:
 		UsersHandler.users.append(newUser)
 		return True
 
+	@staticmethod
 	def removeUserByUsername(username):
 		for user in UsersHandler.users:
 			if (user.username == username):
@@ -40,6 +46,7 @@ class UsersHandler:
 	#0: sucess
 	#2: new username already exist
 	#3: user doesn't exist
+	@staticmethod
 	def modifyUser(pastUsername, newUser):
 
 
@@ -61,6 +68,7 @@ class UsersHandler:
 	#0: success
 	#1: No username found
 	#2: Incorrect
+	@staticmethod
 	def login(username, password):
 		for user in UsersHandler.users:
 			if (user.username == username):
@@ -73,6 +81,7 @@ class UsersHandler:
 		return 1
 	
 
+	@staticmethod
 	def getUserByUsername(username):
 		for user in UsersHandler.users:
 			if user.username == username:
@@ -80,6 +89,7 @@ class UsersHandler:
 		return None
 
 
+	@staticmethod
 	def searchUsers(username, exactMatch):
 		list = []
 
@@ -97,6 +107,7 @@ class UsersHandler:
 		return list
 
 
+	@staticmethod
 	def getUsersAsList(theUsers):
 		list = {}
 		i = 0

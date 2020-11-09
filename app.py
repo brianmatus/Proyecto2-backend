@@ -20,7 +20,7 @@ CORS(app)
 
 
 @app.route('/search_recipes/', methods=['GET','POST'])
-#0:sucess
+#0:success
 #-1: Missing title
 #1: No recipe found
 def search_recipes():
@@ -38,7 +38,7 @@ def search_recipes():
 
     foundRecipes = RecipesHandler.searchRecipes(title, exactMatch)
     if len(foundRecipes) == 0:
-        response["RESULT"] = "No se encontraror recetas con ese nombre"
+        response["RESULT"] = "No se encontraron recetas con ese nombre"
         response["RETURNCODE"] = 1
     else:
 
@@ -51,7 +51,7 @@ def search_recipes():
     return response
 
 @app.route('/add_recipe/',methods=['POST'])
-#0: sucess
+#0: success
 #-1: Missing data
 #1: title already exist
 def add_recipe():
@@ -89,7 +89,38 @@ def add_recipe():
             "METHOD" : "POST"
         })
 
-@app.route('/remove_recipe/',methods=['POST'])
+
+
+@app.route('/getRecipeByUID/',methods=['POST'])
+#0: success
+#-1: Missing data
+#1: no UID found
+def getRecipeByUID():
+    data = json.loads(request.data)
+    uid = data.get('uid', None)
+
+    if (uid == None or uid == ""):
+        return jsonify({
+            "RESULT": "No ha brindado toda la informacion necesaria",
+            "RETURNCODE" : "-1",
+            "METHOD" : "POST"
+            })
+
+    recipe = RecipesHandler.getRecipeByUID(uid)
+    if (recipe == None):
+        return jsonify({
+            "RESULT": f"No se encontro ninguna receta con uid {uid}",
+            "RETURNCODE" : "1",
+            "METHOD" : "POST"
+        })
+
+    return jsonify({
+            "RESULT": RecipesHandler.getRecipesAsList([recipe]),
+            "RETURNCODE" : "0",
+            "METHOD" : "POST"
+        })
+
+@app.route('/remove_recipe/', methods=['POST'])
 def remove_recipe():
     data = json.loads(request.data)
     title = data.get('title', None)
@@ -120,7 +151,7 @@ def remove_recipe():
 
 
 @app.route('/modify_recipe/', methods=['POST'])
-#0: sucess
+#0: success
 #-1: Missing data
 #2: Recipe with new title already exists
 #3: Recipe doesn't exist
@@ -135,12 +166,10 @@ def modify_recipe():
     steps = data.get('steps', None)
     time = data.get('time', None)
     image = data.get('image', None)
-    commentaries = data.get('image', None)
+    comments = data.get('comments', None)
     reactions = data.get('reactions', None)
 
-
-
-    list = [pastAuthor, pastTitle, author, title, abstract, ingredients, steps, time, image, commentaries, reactions]
+    list = [pastAuthor, pastTitle, author, title, abstract, ingredients, steps, time, image, comments, reactions]
     for element in list:
         if (not element or element == ""):
             return jsonify({
@@ -149,7 +178,7 @@ def modify_recipe():
                 "METHOD" : "POST"
             })
 
-    newRecipe = Recipe(author,title,abstract,ingredients,steps,time,image,commentaries, reactions)
+    newRecipe = Recipe(author,title,abstract,ingredients,steps,time,image,comments, reactions)
 
     result = RecipesHandler.modifyRecipe(pastAuthor, pastTitle, newRecipe)
 
@@ -178,7 +207,7 @@ def modify_recipe():
 
 
 @app.route("/addComment/", methods=['POST'])
-#0: Sucess
+#0: success
 #-1: Missing data
 #1: Author-Recipe not found
 def addComment():
@@ -224,7 +253,7 @@ def addComment():
 ###########################################################################################################################
 
 @app.route('/login/', methods=['POST'])
-#0: Sucess
+#0: success
 #-1: Missing data
 #1: Usuario no encontrado
 #2: Contrasena invalida
@@ -246,6 +275,7 @@ def login():
     if result == 0:
         response =  jsonify({
             "RESULT": f"Iniciado sesion correctamente con {username}, bienvenido",
+            "USERTYPE":UsersHandler.loggedUser.type,
             "RETURNCODE" : "0",
             "METHOD" : "POST"
         })
@@ -278,7 +308,7 @@ def logout():
 
 
 @app.route('/register_user/', methods=['POST'])
-#0: sucess
+#0: success
 #-1: Missing data
 #1: User already exist
 def register_user():
@@ -316,7 +346,7 @@ def register_user():
 
 
 @app.route('/remove_user/',methods=['POST'])\
-#0: sucess
+#0: success
 #-1: Missing data
 #1: user is master user
 #2: no user found
@@ -362,7 +392,7 @@ def remove_user():
 
 
 @app.route('/modify_user/', methods=['POST'])
-#0: sucess
+#0: success
 #-1: Missing data
 #2: User with new username already exists
 #3: user doesnt exist
@@ -409,7 +439,7 @@ def modify_user():
 
 
 @app.route('/search_users/',methods=['GET'])
-#0:sucess
+#0:success
 #1:Missing username
 #2: No users found
 def search_users():
@@ -447,7 +477,7 @@ def search_users():
 
 
 @app.route('/get_logged_user/',methods=['GET'])
-#0: sucess
+#0: success
 #1: no user
 def get_logged_user():
     user = UsersHandler.loggedUser
@@ -468,7 +498,7 @@ def get_logged_user():
     
 
 @app.route('/recover_password/',methods=['POST'])
-#0: sucess
+#0: success
 #1: no user found
 def recover_password():
 
@@ -509,7 +539,5 @@ def index():
 
 if __name__ == '__main__':
     # Threaded option to enable multiple instances for multiple user access support
-    UsersHandler.addUser(User("Usuario","Maestro","admin","admin"))
+    UsersHandler.addUser(User("Usuario","Maestro","admin","admin","admin"))
     app.run(threaded=True, port=5000)
-
-

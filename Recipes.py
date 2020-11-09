@@ -1,14 +1,17 @@
+import uuid
+
 class Recipe:
-    def __init__(self, author, titulo, abstract, ingredients, procedure, time, imagen, comments, reactions):
+    def __init__(self, author, titulo, abstract, ingredients, procedure, time, image, comments, reactions):
         self.author = author
         self.title = titulo
         self.abstract = abstract
         self.ingredients = ingredients
         self.procedure = procedure
         self.time = time
-        self.imagen = imagen
+        self.image = image
         self.comments = comments
         self.reactions = reactions
+        self.uid = uuid.uuid1().hex
 
     def getRecipeAsList(self):
         return {
@@ -18,9 +21,10 @@ class Recipe:
             "ingredients": self.ingredients,
             "procedure": self.procedure,
             "time": self.time,
-            "imagen": self.imagen,
+            "image": self.image,
             "comments": self.comments,
-            "reactions": self.reactions
+            "reactions": self.reactions,
+            "uid": self.uid
         }
 
     def addComment(self, author, body, date):
@@ -29,7 +33,6 @@ class Recipe:
             "body": body,
             "date": date
         })
-
 
 class RecipesHandler:
     recipes = []
@@ -50,6 +53,7 @@ class RecipesHandler:
     recipes.append(r2)
     recipes.append(r3)
 
+    @staticmethod
     def addRecipe(theRecipe):
 
         if (not RecipesHandler.getRecipeByAuthorAndTitle(theRecipe.title, theRecipe.author)):
@@ -69,6 +73,7 @@ class RecipesHandler:
     # 0: sucess
     # 2: new title already exist
     # 3: recipe doesn't exist
+    @staticmethod
     def modifyRecipe(pastAuthor, pastTitle, newRecipe):
 
         theRecipe = RecipesHandler.getRecipeByAuthorAndTitle(newRecipe.title, newRecipe.author)
@@ -82,6 +87,7 @@ class RecipesHandler:
                 return 0
         return 3
 
+    @staticmethod
     def searchRecipes(key, exactMatch):
         foundRecipes = []
 
@@ -97,6 +103,7 @@ class RecipesHandler:
                     foundRecipes.append(recipe)
         return foundRecipes
 
+    @staticmethod
     def getRecipeByAuthorAndTitle(author, title):
         print("OBTENIENDO CON AUTOR:" + author)
         print("OBTENIENDO CON TITULO:" + title)
@@ -104,6 +111,7 @@ class RecipesHandler:
             if (recipe.title == title and recipe.author == author):
                 return recipe
 
+    @staticmethod
     def getRecipesAsList(recipes):
         list = {}
         i = 0
@@ -111,3 +119,11 @@ class RecipesHandler:
             list[i] = recipe.getRecipeAsList()
             i = i + 1
         return list
+
+    @staticmethod
+    def getRecipeByUID(uid):
+        print("Searching for uid " + uid)
+        for recipe in RecipesHandler.recipes:
+            if recipe.uid == uid:
+                return recipe
+        return None
