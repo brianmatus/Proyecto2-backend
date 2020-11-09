@@ -210,6 +210,7 @@ def modify_recipe():
 #0: success
 #-1: Missing data
 #1: Author-Recipe not found
+#2: Comment author doesn't exist
 def addComment():
 
     data = json.loads(request.data)
@@ -240,7 +241,19 @@ def addComment():
 
     date = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
 
-    recipe.addComment(author, body, date)
+    theAuthor = UsersHandler.getUserByUsername(author)
+    if (theAuthor == None):
+        return jsonify({
+                "RESULT": "No existe el autor del comentario",
+                "RETURNCODE" : "2",
+                "METHOD" : "POST"
+            })
+
+
+
+    print("HERE IS THE AUTHOR FOR COMMENT",theAuthor.type)
+
+    recipe.addComment(author, theAuthor.type, body, date)
 
     return jsonify({
             "RESULT": "Comentario realizado correctamente",

@@ -27,9 +27,10 @@ class Recipe:
             "uid": self.uid
         }
 
-    def addComment(self, author, body, date):
+    def addComment(self, author, author_type, body, date):
         self.comments.append( {
             "author": author,
+            "author_type": author_type,
             "body": body,
             "date": date
         })
@@ -37,21 +38,15 @@ class Recipe:
 class RecipesHandler:
     recipes = []
 
-    r1 = Recipe("Autor1", "Titulo1", "Res1", "1ingr1,1ingr2", "proced1", "time1",
-                "https://i.ytimg.com/vi/fVh-h6K-zfY/maxresdefault.jpg",
-                [{"author": "Pitito", "body": "This is a nais receta mai frend", "date": "01/04/2020 15:40:09"}],
+    r1 = Recipe("Autor1", "Titulo1", "Res1", "1ingr1,1ingr2", "proced1", "time1","https://i.ytimg.com/vi/fVh-h6K-zfY/maxresdefault.jpg",
+                [
+                {"author": "Pitito", "author_type":"user", "body": "This is a nais receta mai frend", "date": "01/04/2020 15:40:09"},
+                {"author": "Pitito2","author_type":"admin", "body": "This rend", "date": "01/04/2020 15:50:09"}
+                ],
                 {})
-    r2 = Recipe("Autor2", "Titulo2", "Res2", "2ingr1,2ingr2", "proced2", "time2",
-                "https://i.ytimg.com/vi/fVh-h6K-zfY/maxresdefault.jpg", {
-                    "0": {"author": "Pitito5", "body": "This is a nais receta mai frend nais dik",
-                          "date": "01/05/2020 15:40:09"}}, {})
-    r3 = Recipe("Autor3", "Titulo3", "Res3", "3ingr1,3ingr2", "proced3", "time3",
-                "https://i.ytimg.com/vi/fVh-h6K-zfY/maxresdefault.jpg",
-                [{"author": "Pitito", "body": "This is beri bad, chish", "date": "05/04/2020 15:40:09"}], {})
+
 
     recipes.append(r1)
-    recipes.append(r2)
-    recipes.append(r3)
 
     @staticmethod
     def addRecipe(theRecipe):
