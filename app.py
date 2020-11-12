@@ -340,7 +340,7 @@ def register_user():
                 "METHOD" : "POST"
             })
 
-    newUser = User(name,lastname,username,password)
+    newUser = User(name,lastname,username,password,"client")
 
     result = UsersHandler.addUser(newUser)
 
